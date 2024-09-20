@@ -70,7 +70,7 @@ func (s State) String() string {
 	case StateCustomKeybinding19:
 		return "StateCustomKeybinding19"
 	default:
-		return "Unknown Rofi State"
+		return fmt.Sprintf("Unknown Rofi State '%d'", s)
 	}
 }
 

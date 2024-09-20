@@ -51,7 +51,6 @@ type InputHandler struct {
 
 // NewInputHandler returns a new instance of the InputHandler struct
 func NewInputHandler(db db, api *rofi.RofiApi[*rofidata.Data]) *InputHandler {
-
 	in := InputHandler{
 		db:      db,
 		api:     api,
@@ -177,7 +176,6 @@ func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofi.State
 
 	in.api.Data.Bookmark = b
 
-	log.Println(rofiState)
 	switch rofiState {
 	case rofi.StateCustomKeybinding2:
 		in.handleModifyShow()
