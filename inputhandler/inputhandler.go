@@ -121,8 +121,7 @@ func (in *InputHandler) HandleInput(input string) {
 
 // HandleBookmarksShow sets rofi's initial state and shows all bookmarks
 func (in *InputHandler) HandleBookmarksShow() {
-	in.api.Options[rofi.OptionPrompt] = "Bookmarks"
-	in.api.Options[rofi.OptionMessage] = "Add: Alt+1 | Modify: Alt+2 | Delete: Alt+3"
+	in.api.Options[rofi.OptionMessage] = "add: Alt+1 | modify: Alt+2 | delete: Alt+3"
 	in.api.Options[rofi.OptionNoCustom] = "true"
 	in.api.Options[rofi.OptionUseHotKeys] = "true"
 
@@ -192,8 +191,7 @@ func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofi.State
 }
 
 func (in *InputHandler) handleAddShow() {
-	in.api.Options[rofi.OptionPrompt] = "Select Field"
-	in.api.Options[rofi.OptionMessage] = "all fields are optional except the url"
+	in.api.Options[rofi.OptionMessage] = "select a field to add, all are optional except the url"
 	in.api.Options[rofi.OptionNoCustom] = "true"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -247,8 +245,7 @@ func (in *InputHandler) handleAddSelect(input string) {
 }
 
 func (in *InputHandler) handleAddTitleShow() {
-	in.api.Options[rofi.OptionPrompt] = "Title"
-	in.api.Options[rofi.OptionMessage] = ""
+	in.api.Options[rofi.OptionMessage] = "enter a title"
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -273,8 +270,7 @@ func (in *InputHandler) handleAddTitleSelect(input string) {
 }
 
 func (in *InputHandler) handleAddUrlShow() {
-	in.api.Options[rofi.OptionPrompt] = "Url"
-	in.api.Options[rofi.OptionMessage] = ""
+	in.api.Options[rofi.OptionMessage] = "enter a url"
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -299,8 +295,7 @@ func (in *InputHandler) handleAddUrlSelect(input string) {
 }
 
 func (in *InputHandler) handleAddCommentShow() {
-	in.api.Options[rofi.OptionPrompt] = "Comment"
-	in.api.Options[rofi.OptionMessage] = ""
+	in.api.Options[rofi.OptionMessage] = "enter a comment"
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -325,8 +320,8 @@ func (in *InputHandler) handleAddCommentSelect(input string) {
 }
 
 func (in *InputHandler) handleAddTagsShow() {
-	in.api.Options[rofi.OptionPrompt] = "Tags"
-	in.api.Options[rofi.OptionMessage] = "example: mytag, some-tag, a tag"
+	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(
+		"enter some tags\rexample: 'mytag, some-tag, a tag'")
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -379,8 +374,7 @@ func (in *InputHandler) handleGotoExec() {
 }
 
 func (in *InputHandler) handleModifyShow() {
-	in.api.Options[rofi.OptionPrompt] = "Select Field"
-	in.api.Options[rofi.OptionMessage] = ""
+	in.api.Options[rofi.OptionMessage] = "select a field to edit"
 	in.api.Options[rofi.OptionNoCustom] = "true"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -420,8 +414,8 @@ func (in *InputHandler) handleModifySelect(input string) {
 }
 
 func (in *InputHandler) handleModifyTitleShow() {
-	in.api.Options[rofi.OptionPrompt] = "New Title"
-	in.api.Options[rofi.OptionMessage] = "Current Title: " + in.api.Data.Bookmark.Title
+	in.api.Options[rofi.OptionMessage] = "enter a new title\rcurrent: " +
+		escapePangoMarkdown(in.api.Data.Bookmark.Title)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -450,8 +444,8 @@ func (in *InputHandler) handleModifyTitleSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyUrlShow() {
-	in.api.Options[rofi.OptionPrompt] = "New URL"
-	in.api.Options[rofi.OptionMessage] = "Current URL: " + in.api.Data.Bookmark.URL
+	in.api.Options[rofi.OptionMessage] = "enter a new url\rcurrent: " +
+		escapePangoMarkdown(in.api.Data.Bookmark.URL)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -477,8 +471,8 @@ func (in *InputHandler) handleModifyUrlSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyCommentShow() {
-	in.api.Options[rofi.OptionPrompt] = "New Comment"
-	in.api.Options[rofi.OptionMessage] = "Current Comment: " + in.api.Data.Bookmark.Comment
+	in.api.Options[rofi.OptionMessage] = "enter a new comment\rcurrent: " +
+		escapePangoMarkdown(in.api.Data.Bookmark.Comment)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -507,13 +501,10 @@ func (in *InputHandler) handleModifyCommentSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyTagsShow() {
-	in.api.Options[rofi.OptionPrompt] = "Modify Tags"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
-
-	message := "'+' appends to, '-' removes from tagset\r" +
-		"example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\r\rCurrent Tags: " +
+	message := "example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\rcurrent: " +
 		strings.Join(in.api.Data.Bookmark.Tags, ", ")
-	in.api.Options[rofi.OptionMessage] = message
+	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 
 	in.api.Entries = []rofi.Entry{
@@ -575,9 +566,9 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 }
 
 func (in *InputHandler) handleDeleteConfirmShow() {
-	in.api.Options[rofi.OptionPrompt] = "Delete? (yes/No)"
-	message := strings.Join(multiLineBookmark(in.api.Data.Bookmark), "\r")
-	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(message)
+	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(
+		"Delete? (yes/No)\r" +
+			"> " + in.api.Data.Bookmark.URL)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -615,7 +606,6 @@ func (in *InputHandler) getSelectedFromInput(input string) (bukudb.Bookmark, err
 // replaces rofi's entries with the back option
 func SetMessageToError(api *rofi.RofiApi[*rofidata.Data], err error) {
 	log.Println(err)
-	api.Options[rofi.OptionPrompt] = "Error"
 	api.Options[rofi.OptionMessage] = escapePangoMarkdown(err.Error())
 	api.Options[rofi.OptionNoCustom] = "true"
 	api.Entries = []rofi.Entry{{Text: op_back}}

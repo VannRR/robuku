@@ -139,8 +139,7 @@ func Test_HandleBookmarksShow(t *testing.T) {
 	in.HandleBookmarksShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Bookmarks",
-		rofi.OptionMessage:  "Add: Alt+1 | Modify: Alt+2 | Delete: Alt+3",
+		rofi.OptionMessage:  "add: Alt+1 | modify: Alt+2 | delete: Alt+3",
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -196,8 +195,7 @@ func Test_handleAddShow(t *testing.T) {
 	in.handleAddShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Select Field",
-		rofi.OptionMessage:  "all fields are optional except the url",
+		rofi.OptionMessage:  "select a field to add, all are optional except the url",
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -257,8 +255,7 @@ func Test_handleAddTitleShow(t *testing.T) {
 	in.handleAddTitleShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Title",
-		rofi.OptionMessage:  "",
+		rofi.OptionMessage:  "enter a title",
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -304,8 +301,7 @@ func Test_handleAddUrlShow(t *testing.T) {
 	in.handleAddUrlShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Url",
-		rofi.OptionMessage:  "",
+		rofi.OptionMessage:  "enter a url",
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -348,8 +344,7 @@ func Test_handleAddCommentShow(t *testing.T) {
 	in.handleAddCommentShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Comment",
-		rofi.OptionMessage:  "",
+		rofi.OptionMessage:  "enter a comment",
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -392,8 +387,8 @@ func Test_handleAddTagsShow(t *testing.T) {
 	in.handleAddTagsShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Tags",
-		rofi.OptionMessage:  "example: mytag, some-tag, a tag",
+		rofi.OptionMessage: escapePangoMarkdown(
+			"enter some tags\rexample: 'mytag, some-tag, a tag'"),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -440,8 +435,7 @@ func Test_handleModifyShow(t *testing.T) {
 	in.handleModifyShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Select Field",
-		rofi.OptionMessage:  "",
+		rofi.OptionMessage:  "select a field to edit",
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -490,8 +484,8 @@ func Test_handleModifyTitleShow(t *testing.T) {
 	in.handleModifyTitleShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "New Title",
-		rofi.OptionMessage:  "Current Title: " + in.api.Data.Bookmark.Title,
+		rofi.OptionMessage: "enter a new title\rcurrent: " +
+			escapePangoMarkdown(in.api.Data.Bookmark.Title),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -533,8 +527,8 @@ func Test_handleModifyUrlShow(t *testing.T) {
 	in.handleModifyUrlShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "New URL",
-		rofi.OptionMessage:  "Current URL: " + in.api.Data.Bookmark.URL,
+		rofi.OptionMessage: "enter a new url\rcurrent: " +
+			escapePangoMarkdown(in.api.Data.Bookmark.URL),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -577,8 +571,8 @@ func Test_handleModifyCommentShow(t *testing.T) {
 	in.handleModifyCommentShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "New Comment",
-		rofi.OptionMessage:  "Current Comment: " + in.api.Data.Bookmark.Comment,
+		rofi.OptionMessage: "enter a new comment\rcurrent: " +
+			escapePangoMarkdown(in.api.Data.Bookmark.Comment),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -620,12 +614,10 @@ func Test_handleModifyTagShow(t *testing.T) {
 	in.api.Data.Bookmark.Tags = []string{"some tag1", "some tag2"}
 	in.handleModifyTagsShow()
 
-	message := "'+' appends to, '-' removes from tagset\r" +
-		"example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\r\rCurrent Tags: " +
+	message := "example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\rcurrent: " +
 		strings.Join(in.api.Data.Bookmark.Tags, ", ")
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Modify Tags",
-		rofi.OptionMessage:  message,
+		rofi.OptionMessage:  escapePangoMarkdown(message),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -700,10 +692,10 @@ func Test_handleDeleteConfirmShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleDeleteConfirmShow()
 
-	message := strings.Join(multiLineBookmark(in.api.Data.Bookmark), "\r")
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionPrompt:   "Delete? (yes/No)",
-		rofi.OptionMessage:  escapePangoMarkdown(message),
+		rofi.OptionMessage: escapePangoMarkdown(
+			"Delete? (yes/No)\r" +
+				"> " + in.api.Data.Bookmark.URL),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
