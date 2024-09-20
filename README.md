@@ -47,7 +47,7 @@ from the Rofi interface.
 
 Run the script with rofi:
 ```sh
-rofi -show robuku -modi robuku
+rofi -show robuku
 ```
 
 ### Notes
