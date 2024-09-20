@@ -50,8 +50,21 @@ Run the script with rofi:
 rofi -show robuku -modi robuku
 ```
 
-**Note** Tags and urls are used as metadata for search but not displayed unless
-the bookmark has no title then the url is displayed.
+### Notes
+
+#### Searching
+Tags and URLs are used as metadata for search but are not displayed unless the
+bookmark has no title. In that case, the URL is displayed instead of the title.
+
+#### Broken Message Box
+If the message box is not resizing to the text, go to your rofi config and remove
+the `height` property from `window`. Instead, set the `lines` property
+(number of entries listed in rofi) of `listview` to achieve the desired height.
+
+#### Hotkeys (Alt+1, etc.) Not Working
+If hotkeys are not working in rofi, check the following properties in the rofi config:
+`kb-custom-1`, `kb-custom-2`, and `kb-custom-3`. If they are not set to their default values,
+the hotkeys listed in robuku will be incorrect.
 
 ## Links
 

@@ -17,6 +17,8 @@ import (
 )
 
 const robukuBrowserEnvVar = "ROBUKU_BROWSER"
+const entryMaxLen = 100
+const messageMaxLen = 180
 
 const (
 	op_add       string = "--> Add"
@@ -144,7 +146,7 @@ func (in *InputHandler) HandleBookmarksShow() {
 		}
 
 		entries = append(entries, rofi.Entry{
-			Text: fmt.Sprintf("%s. %s", id, text),
+			Text: formatEntryText(fmt.Sprintf("%s. %s", id, text)),
 			Meta: strings.Join(b.Tags, " "),
 		})
 	}
@@ -318,8 +320,8 @@ func (in *InputHandler) handleAddCommentSelect(input string) {
 }
 
 func (in *InputHandler) handleAddTagsShow() {
-	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(
-		"enter some tags\rexample: 'mytag, some-tag, a tag'")
+	message := escapePangoMarkdown("enter some tags\rexample: 'mytag, some-tag, a tag'")
+	in.api.Options[rofi.OptionMessage] = message
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -412,8 +414,8 @@ func (in *InputHandler) handleModifySelect(input string) {
 }
 
 func (in *InputHandler) handleModifyTitleShow() {
-	in.api.Options[rofi.OptionMessage] = "enter a new title\rcurrent: " +
-		escapePangoMarkdown(in.api.Data.Bookmark.Title)
+	message := "enter a new title\rcurrent: " + in.api.Data.Bookmark.Title
+	in.api.Options[rofi.OptionMessage] = formatMessage(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -442,8 +444,8 @@ func (in *InputHandler) handleModifyTitleSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyUrlShow() {
-	in.api.Options[rofi.OptionMessage] = "enter a new url\rcurrent: " +
-		escapePangoMarkdown(in.api.Data.Bookmark.URL)
+	message := "enter a new url\rcurrent: " + in.api.Data.Bookmark.URL
+	in.api.Options[rofi.OptionMessage] = formatMessage(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -469,8 +471,8 @@ func (in *InputHandler) handleModifyUrlSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyCommentShow() {
-	in.api.Options[rofi.OptionMessage] = "enter a new comment\rcurrent: " +
-		escapePangoMarkdown(in.api.Data.Bookmark.Comment)
+	message := "enter a new comment\rcurrent: " + in.api.Data.Bookmark.Comment
+	in.api.Options[rofi.OptionMessage] = formatMessage(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -499,11 +501,11 @@ func (in *InputHandler) handleModifyCommentSelect(input string) {
 }
 
 func (in *InputHandler) handleModifyTagsShow() {
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
-	message := "example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\rcurrent: " +
+	message := "add or remove tags\rexample:'+ newtag1, ...' or '- oldtag1, ...'\rcurrent: " +
 		strings.Join(in.api.Data.Bookmark.Tags, ", ")
-	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(message)
+	in.api.Options[rofi.OptionMessage] = formatMessage(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
+	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofi.Entry{
 		{Text: op_back},
@@ -564,9 +566,8 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 }
 
 func (in *InputHandler) handleDeleteConfirmShow() {
-	in.api.Options[rofi.OptionMessage] = escapePangoMarkdown(
-		"Delete? (yes/No)\r" +
-			"> " + in.api.Data.Bookmark.URL)
+	message := "delete? (yes/No)\r" + "> " + in.api.Data.Bookmark.URL
+	in.api.Options[rofi.OptionMessage] = formatMessage(message)
 	in.api.Options[rofi.OptionNoCustom] = "false"
 	in.api.Options[rofi.OptionUseHotKeys] = "false"
 
@@ -626,17 +627,6 @@ func getTagsFromInput(input string) []string {
 	return tags
 }
 
-func escapePangoMarkdown(input string) string {
-	replacer := strings.NewReplacer(
-		"&", "&amp;",
-		"<", "&lt;",
-		">", "&gt;",
-		"'", "&#39;",
-		"\"", "&quot;",
-	)
-	return replacer.Replace(input)
-}
-
 func multiLineBookmark(b bukudb.Bookmark) []string {
 	title := b.Title
 	if title == "" {
@@ -659,9 +649,45 @@ func multiLineBookmark(b bukudb.Bookmark) []string {
 	}
 
 	return []string{
-		fmt.Sprintf("%d. %s", b.ID, title),
-		"   > " + url,
-		"   + " + comment,
-		"   # " + tags,
+		formatEntryText(fmt.Sprintf("%d. %s", b.ID, title)),
+		formatEntryText("   > " + url),
+		formatEntryText("   + " + comment),
+		formatEntryText("   # " + tags),
 	}
+}
+
+func formatMessage(m string) string {
+	m = truncate(m, messageMaxLen)
+	m = escapePangoMarkdown(m)
+	return m
+}
+
+func formatEntryText(e string) string {
+	e = truncate(e, entryMaxLen)
+	e = replaceNewlines(e)
+	return e
+}
+
+func escapePangoMarkdown(input string) string {
+	replacer := strings.NewReplacer(
+		"&", "&amp;",
+		"<", "&lt;",
+		">", "&gt;",
+		"'", "&#39;",
+		"\"", "&quot;",
+		"\n", "\r",
+	)
+	return replacer.Replace(input)
+}
+
+func truncate(s string, l int) string {
+	if len(s) > l && l >= 3 {
+		return s[0:l-3] + "..."
+	} else {
+		return s
+	}
+}
+
+func replaceNewlines(s string) string {
+	return strings.ReplaceAll(s, "\n", " ")
 }

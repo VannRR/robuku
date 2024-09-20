@@ -614,10 +614,10 @@ func Test_handleModifyTagShow(t *testing.T) {
 	in.api.Data.Bookmark.Tags = []string{"some tag1", "some tag2"}
 	in.handleModifyTagsShow()
 
-	message := "example:'+ newtag1, newtag2' or '- oldtag1, oldtag2'\rcurrent: " +
+	message := "add or remove tags\rexample:'+ newtag1, ...' or '- oldtag1, ...'\rcurrent: " +
 		strings.Join(in.api.Data.Bookmark.Tags, ", ")
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  escapePangoMarkdown(message),
+		rofi.OptionMessage:  formatMessage(message),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -694,7 +694,7 @@ func Test_handleDeleteConfirmShow(t *testing.T) {
 
 	expectedOptions := map[rofi.Option]string{
 		rofi.OptionMessage: escapePangoMarkdown(
-			"Delete? (yes/No)\r" +
+			"delete? (yes/No)\r" +
 				"> " + in.api.Data.Bookmark.URL),
 		rofi.OptionNoCustom: "false",
 	}
