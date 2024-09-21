@@ -139,7 +139,8 @@ func Test_HandleBookmarksShow(t *testing.T) {
 	in.HandleBookmarksShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "add: Alt+1 | modify: Alt+2 | delete: Alt+3",
+		rofi.OptionMessage: generatePangoMarkup(
+			"add: Alt+1 | modify: Alt+2 | delete: Alt+3", "", ""),
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -195,7 +196,8 @@ func Test_handleAddShow(t *testing.T) {
 	in.handleAddShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "select a field to add, all are optional except the url",
+		rofi.OptionMessage: generatePangoMarkup(
+			"select a field to add, all are optional except the url", "", ""),
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -255,7 +257,7 @@ func Test_handleAddTitleShow(t *testing.T) {
 	in.handleAddTitleShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "enter a title",
+		rofi.OptionMessage:  generatePangoMarkup("enter a title", "", ""),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -301,7 +303,7 @@ func Test_handleAddUrlShow(t *testing.T) {
 	in.handleAddUrlShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "enter a url",
+		rofi.OptionMessage:  generatePangoMarkup("enter a url", "", ""),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -344,7 +346,7 @@ func Test_handleAddCommentShow(t *testing.T) {
 	in.handleAddCommentShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "enter a comment",
+		rofi.OptionMessage:  generatePangoMarkup("enter a comment", "", ""),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -387,8 +389,8 @@ func Test_handleAddTagsShow(t *testing.T) {
 	in.handleAddTagsShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: escapePangoMarkdown(
-			"enter some tags\rexample: 'mytag, some-tag, a tag'"),
+		rofi.OptionMessage: generatePangoMarkup(
+			"enter some tags", "'mytag, some-tag, a tag'", ""),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -435,7 +437,7 @@ func Test_handleModifyShow(t *testing.T) {
 	in.handleModifyShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  "select a field to edit",
+		rofi.OptionMessage:  generatePangoMarkup("select a field to edit", "", ""),
 		rofi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -484,8 +486,8 @@ func Test_handleModifyTitleShow(t *testing.T) {
 	in.handleModifyTitleShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: "enter a new title\rcurrent: " +
-			escapePangoMarkdown(in.api.Data.Bookmark.Title),
+		rofi.OptionMessage: generatePangoMarkup(
+			"enter a new title", "", in.api.Data.Bookmark.Title),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -527,8 +529,8 @@ func Test_handleModifyUrlShow(t *testing.T) {
 	in.handleModifyUrlShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: "enter a new url\rcurrent: " +
-			escapePangoMarkdown(in.api.Data.Bookmark.URL),
+		rofi.OptionMessage: generatePangoMarkup(
+			"enter a new url", "", in.api.Data.Bookmark.URL),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -571,8 +573,8 @@ func Test_handleModifyCommentShow(t *testing.T) {
 	in.handleModifyCommentShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: "enter a new comment\rcurrent: " +
-			escapePangoMarkdown(in.api.Data.Bookmark.Comment),
+		rofi.OptionMessage: generatePangoMarkup(
+			"enter a new comment", "", in.api.Data.Bookmark.Comment),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -614,10 +616,11 @@ func Test_handleModifyTagShow(t *testing.T) {
 	in.api.Data.Bookmark.Tags = []string{"some tag1", "some tag2"}
 	in.handleModifyTagsShow()
 
-	message := "add or remove tags\rexample:'+ newtag1, ...' or '- oldtag1, ...'\rcurrent: " +
-		strings.Join(in.api.Data.Bookmark.Tags, ", ")
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  formatMessage(message),
+		rofi.OptionMessage: generatePangoMarkup(
+			"add or remove tags",
+			"'+ newtag1, ...' or '- oldtag1, ...'",
+			strings.Join(in.api.Data.Bookmark.Tags, ", ")),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
@@ -693,9 +696,8 @@ func Test_handleDeleteConfirmShow(t *testing.T) {
 	in.handleDeleteConfirmShow()
 
 	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: escapePangoMarkdown(
-			"delete? (yes/No)\r" +
-				"> " + in.api.Data.Bookmark.URL),
+		rofi.OptionMessage: generatePangoMarkup(
+			"delete? (yes/No)", "", in.api.Data.Bookmark.URL),
 		rofi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
