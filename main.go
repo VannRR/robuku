@@ -7,8 +7,8 @@ import (
 
 	"github.com/VannRR/robuku/bukudb"
 	"github.com/VannRR/robuku/inputhandler"
-	"github.com/VannRR/rofi-api"
 	"github.com/VannRR/robuku/rofidata"
+	"github.com/VannRR/rofi-api"
 )
 
 const (

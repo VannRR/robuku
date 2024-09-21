@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/VannRR/robuku/bukudb"
-	"github.com/VannRR/rofi-api"
 	"github.com/VannRR/robuku/rofidata"
+	"github.com/VannRR/rofi-api"
 )
 
 const robukuBrowserEnvVar = "ROBUKU_BROWSER"
@@ -667,17 +667,23 @@ func generatePangoMarkup(instructions, example, currentValue string) string {
 	if instructions != "" {
 		instructions = rofiapi.EscapePangoMarkup(instructions)
 		markup += fmt.Sprintf(
-			"<span font_weight=\"bold\">%s</span>\r", instructions)
+			"<span font_weight=\"bold\">%s</span>", instructions)
 	}
 	if example != "" {
 		example = rofiapi.EscapePangoMarkup(example)
+		if instructions != "" {
+			markup += "\r"
+		}
 		markup += fmt.Sprintf(
-			"<span font_weight=\"bold\">example:</span><span> <i>%s</i></span>\r",
+			"<span font_weight=\"bold\">example:</span><span> <i>%s</i></span>",
 			example)
 	}
 	if currentValue != "" {
 		currentValue = truncate(currentValue, entryMaxLen)
 		currentValue = rofiapi.EscapePangoMarkup(currentValue)
+		if example != "" || instructions != "" {
+			markup += "\r"
+		}
 		markup += fmt.Sprintf(
 			"<span font_weight=\"bold\">current:</span><span> <u>%s</u></span>",
 			currentValue)

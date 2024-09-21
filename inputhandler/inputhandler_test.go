@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/VannRR/robuku/bukudb"
-	"github.com/VannRR/rofi-api"
 	"github.com/VannRR/robuku/rofidata"
+	"github.com/VannRR/rofi-api"
 
 	_ "github.com/mattn/go-sqlite3"
 )
