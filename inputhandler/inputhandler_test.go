@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"robuku/bukudb"
-	"robuku/rofi"
-	"robuku/rofidata"
+	"github.com/VannRR/robuku/bukudb"
+	"github.com/VannRR/rofi-api"
+	"github.com/VannRR/robuku/rofidata"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -138,14 +138,14 @@ func Test_HandleBookmarksShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.HandleBookmarksShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"add: Alt+1 | modify: Alt+2 | delete: Alt+3", "", ""),
-		rofi.OptionNoCustom: "true",
+		rofiapi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: "0001. metadata (title) google", Meta: "google tag2 tag3"},
 		{Text: "0002. metadata (title) b", Meta: "b tag2 tag3"},
 		{Text: "0003. metadata (title) c"},
@@ -164,30 +164,30 @@ func Test_handleBookmarksSelect(t *testing.T) {
 	in := initInputHandler(t)
 
 	// selected add option
-	in.handleBookmarksSelect("", rofi.StateCustomKeybinding1)
+	in.handleBookmarksSelect("", rofiapi.StateCustomKeybinding1)
 	checkState(t, rofidata.St_add_select, in.api.Data.State)
 
 	// selected modify option
-	in.handleBookmarksSelect("0001. metadata (title) a", rofi.StateCustomKeybinding2)
+	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateCustomKeybinding2)
 	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 
 	// selected delete option
-	in.handleBookmarksSelect("0001. metadata (title) a", rofi.StateCustomKeybinding3)
+	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateCustomKeybinding3)
 	checkState(t, rofidata.St_delete_confirm_select, in.api.Data.State)
 
 	// selected valid bookmark
-	in.handleBookmarksSelect("0001. metadata (title) a", rofi.StateSelected)
+	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateSelected)
 	checkState(t, rofidata.St_goto_exec, in.api.Data.State)
 	if in.api.Data.Bookmark.ID != 1 {
 		t.Errorf("expected Bookmark ID '1', got '%d'", in.api.Data.Bookmark.ID)
 	}
 
 	// selected invalid bookmark that has no id
-	in.handleBookmarksSelect("invalid bookmark", rofi.StateSelected)
+	in.handleBookmarksSelect("invalid bookmark", rofiapi.StateSelected)
 	checkState(t, rofidata.St_bookmarks_show, in.api.Data.State)
 
 	// selected invalid bookmark that has id out of range
-	in.handleBookmarksSelect("0099. invalid id", rofi.StateSelected)
+	in.handleBookmarksSelect("0099. invalid id", rofiapi.StateSelected)
 	checkState(t, rofidata.St_bookmarks_show, in.api.Data.State)
 }
 
@@ -195,21 +195,21 @@ func Test_handleAddShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleAddShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"select a field to add, all are optional except the url", "", ""),
-		rofi.OptionNoCustom: "true",
+		rofiapi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
 	b := in.api.Data.Bookmark
 	b.ID = uint16(in.db.Len() + 1)
-	expectedEntries := []rofi.Entry{{Text: op_back}}
+	expectedEntries := []rofiapi.Entry{{Text: op_back}}
 	bookmark := multiLineBookmark(b)
 	for _, l := range bookmark {
-		expectedEntries = append(expectedEntries, rofi.Entry{Text: l})
+		expectedEntries = append(expectedEntries, rofiapi.Entry{Text: l})
 	}
-	expectedEntries = append(expectedEntries, rofi.Entry{Text: op_confirm})
+	expectedEntries = append(expectedEntries, rofiapi.Entry{Text: op_confirm})
 	checkEntries(t, expectedEntries, in.api.Entries)
 
 	checkState(t, rofidata.St_add_select, in.api.Data.State)
@@ -256,13 +256,13 @@ func Test_handleAddTitleShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleAddTitleShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  generatePangoMarkup("enter a title", "", ""),
-		rofi.OptionNoCustom: "false",
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage:  generatePangoMarkup("enter a title", "", ""),
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -276,10 +276,7 @@ func Test_handleAddTitleSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddTitleSelect(op_back)
-	if in.api.Data.State != rofidata.St_add_select {
-		t.Errorf("expected state '%d', got '%d'",
-			rofidata.St_add_select, in.api.Data.State)
-	}
+	checkState(t, rofidata.St_add_select, in.api.Data.State)
 
 	// selected default option, entered new title
 	in.handleAddTitleSelect("some title")
@@ -302,13 +299,13 @@ func Test_handleAddUrlShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleAddUrlShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  generatePangoMarkup("enter a url", "", ""),
-		rofi.OptionNoCustom: "false",
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage:  generatePangoMarkup("enter a url", "", ""),
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -345,13 +342,13 @@ func Test_handleAddCommentShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleAddCommentShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  generatePangoMarkup("enter a comment", "", ""),
-		rofi.OptionNoCustom: "false",
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage:  generatePangoMarkup("enter a comment", "", ""),
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -388,14 +385,14 @@ func Test_handleAddTagsShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleAddTagsShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"enter some tags", "'mytag, some-tag, a tag'", ""),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -436,16 +433,16 @@ func Test_handleModifyShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleModifyShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage:  generatePangoMarkup("select a field to edit", "", ""),
-		rofi.OptionNoCustom: "true",
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage:  generatePangoMarkup("select a field to edit", "", ""),
+		rofiapi.OptionNoCustom: "true",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{{Text: op_back}}
+	expectedEntries := []rofiapi.Entry{{Text: op_back}}
 	bookmark := multiLineBookmark(in.api.Data.Bookmark)
 	for _, l := range bookmark {
-		expectedEntries = append(expectedEntries, rofi.Entry{Text: l})
+		expectedEntries = append(expectedEntries, rofiapi.Entry{Text: l})
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
@@ -485,14 +482,14 @@ func Test_handleModifyTitleShow(t *testing.T) {
 	in.api.Data.Bookmark.Title = "some title"
 	in.handleModifyTitleShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"enter a new title", "", in.api.Data.Bookmark.Title),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -508,6 +505,7 @@ func Test_handleModifyTitleSelect(t *testing.T) {
 	// selected delete option
 	in.api.Data.Bookmark.Title = "some title"
 	in.handleModifyTitleSelect(op_delete)
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "" {
 		t.Errorf("expected bookmark title '', got '%s'", in.api.Data.Bookmark.Title)
 	}
@@ -518,6 +516,7 @@ func Test_handleModifyTitleSelect(t *testing.T) {
 
 	// entered new title
 	in.handleModifyTitleSelect("some new title")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "some new title" {
 		t.Errorf("expected bookmark title 'some new title', got '%s'", in.api.Data.Bookmark.Title)
 	}
@@ -528,14 +527,14 @@ func Test_handleModifyUrlShow(t *testing.T) {
 	in.api.Data.Bookmark.URL = "some url"
 	in.handleModifyUrlShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"enter a new url", "", in.api.Data.Bookmark.URL),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
@@ -561,7 +560,7 @@ func Test_handleModifyUrlSelect(t *testing.T) {
 
 	// entered new url
 	in.handleModifyUrlSelect("some new url")
-	checkState(t, rofidata.St_modify_url_select, in.api.Data.State)
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.URL != "some new url" {
 		t.Errorf("expected bookmark url 'some new url', got '%s'", in.api.Data.Bookmark.URL)
 	}
@@ -572,14 +571,14 @@ func Test_handleModifyCommentShow(t *testing.T) {
 	in.api.Data.Bookmark.Comment = "some comment"
 	in.handleModifyCommentShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"enter a new comment", "", in.api.Data.Bookmark.Comment),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -595,6 +594,7 @@ func Test_handleModifyCommentSelect(t *testing.T) {
 	// selected delete option
 	in.api.Data.Bookmark.Comment = "some comment"
 	in.handleModifyCommentSelect(op_delete)
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "" {
 		t.Errorf("expected bookmark comment '', got '%s'", in.api.Data.Bookmark.Comment)
 	}
@@ -605,6 +605,7 @@ func Test_handleModifyCommentSelect(t *testing.T) {
 
 	// entered new comment
 	in.handleModifyCommentSelect("some new comment")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "some new comment" {
 		t.Errorf("expected bookmark comment 'some new comment', got '%s'",
 			in.api.Data.Bookmark.Comment)
@@ -616,16 +617,16 @@ func Test_handleModifyTagShow(t *testing.T) {
 	in.api.Data.Bookmark.Tags = []string{"some tag1", "some tag2"}
 	in.handleModifyTagsShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"add or remove tags",
 			"'+ newtag1, ...' or '- oldtag1, ...'",
 			strings.Join(in.api.Data.Bookmark.Tags, ", ")),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -645,6 +646,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// selected delete option
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect(op_delete)
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 0 {
 		t.Errorf("expected bookmark tags len '0', got '%d'", len(in.api.Data.Bookmark.Tags))
 	}
@@ -652,6 +654,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered new tags starting with + prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("+ wow, zow")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 4 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			4, len(in.api.Data.Bookmark.Tags))
@@ -660,6 +663,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered existing tags starting with + prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("+ tag1, tag2")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
@@ -668,6 +672,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered existing tags starting with - prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("- tag1, tag2")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 0 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			0, len(in.api.Data.Bookmark.Tags))
@@ -676,6 +681,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered new tags starting with - prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("- new1, new2")
+	checkState(t, rofidata.St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
@@ -684,25 +690,25 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered test without prefix, default option
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("AAAAAAA")
+	checkState(t, rofidata.St_modify_tags_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
 	}
-	checkState(t, rofidata.St_modify_tags_select, in.api.Data.State)
 }
 
 func Test_handleDeleteConfirmShow(t *testing.T) {
 	in := initInputHandler(t)
 	in.handleDeleteConfirmShow()
 
-	expectedOptions := map[rofi.Option]string{
-		rofi.OptionMessage: generatePangoMarkup(
+	expectedOptions := map[rofiapi.Option]string{
+		rofiapi.OptionMessage: generatePangoMarkup(
 			"delete? (yes/No)", "", in.api.Data.Bookmark.URL),
-		rofi.OptionNoCustom: "false",
+		rofiapi.OptionNoCustom: "false",
 	}
 	checkOptions(t, expectedOptions, in.api.Options)
 
-	expectedEntries := []rofi.Entry{
+	expectedEntries := []rofiapi.Entry{
 		{Text: op_back},
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
@@ -785,7 +791,7 @@ func Test_getSelectedFromInput(t *testing.T) {
 	}
 }
 
-func checkEntries(t *testing.T, expectedEntries, actualEntries []rofi.Entry) {
+func checkEntries(t *testing.T, expectedEntries, actualEntries []rofiapi.Entry) {
 	t.Helper()
 	if len(actualEntries) != len(expectedEntries) {
 		t.Errorf("expected Entries length '%d', got '%d'",
@@ -800,7 +806,7 @@ func checkEntries(t *testing.T, expectedEntries, actualEntries []rofi.Entry) {
 	}
 }
 
-func checkOptions(t *testing.T, expectedOptions, actualOptions map[rofi.Option]string) {
+func checkOptions(t *testing.T, expectedOptions, actualOptions map[rofiapi.Option]string) {
 	t.Helper()
 
 	for k, expected := range expectedOptions {
@@ -826,7 +832,7 @@ func initInputHandler(t *testing.T) *InputHandler {
 
 	db := newMockDB()
 	data := rofidata.Data{}
-	api, err := rofi.NewRofiApi(&data)
+	api, err := rofiapi.NewRofiApi(&data)
 	if err != nil {
 		t.Fatalf("expected no error from NewRofiApi(), got %v", err)
 	}

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"robuku/bukudb"
+	"github.com/VannRR/robuku/bukudb"
 )
 
 type AppState byte

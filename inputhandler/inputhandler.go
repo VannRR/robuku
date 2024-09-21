@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"robuku/bukudb"
-	"robuku/rofi"
-	"robuku/rofidata"
+	"github.com/VannRR/robuku/bukudb"
+	"github.com/VannRR/rofi-api"
+	"github.com/VannRR/robuku/rofidata"
 )
 
 const robukuBrowserEnvVar = "ROBUKU_BROWSER"
@@ -45,13 +45,13 @@ type db interface {
 // InputHandler is the struct that handles input from rofi and manages app state
 type InputHandler struct {
 	db      db
-	api     *rofi.RofiApi[*rofidata.Data]
+	api     *rofiapi.RofiApi[*rofidata.Data]
 	data    *rofidata.Data
 	browser string
 }
 
 // NewInputHandler returns a new instance of the InputHandler struct
-func NewInputHandler(db db, api *rofi.RofiApi[*rofidata.Data]) *InputHandler {
+func NewInputHandler(db db, api *rofiapi.RofiApi[*rofidata.Data]) *InputHandler {
 	in := InputHandler{
 		db:      db,
 		api:     api,
@@ -121,10 +121,10 @@ func (in *InputHandler) HandleInput(input string) {
 
 // HandleBookmarksShow sets rofi's initial state and shows all bookmarks
 func (in *InputHandler) HandleBookmarksShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"add: Alt+1 | modify: Alt+2 | delete: Alt+3", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "true"
-	in.api.Options[rofi.OptionUseHotKeys] = "true"
+	in.api.Options[rofiapi.OptionNoCustom] = "true"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "true"
 
 	numPadding := len(fmt.Sprint(bukudb.MaxBookmarks))
 	allBookmarks, err := in.db.GetAll()
@@ -133,7 +133,7 @@ func (in *InputHandler) HandleBookmarksShow() {
 		in.api.Data.State = rofidata.St_bookmarks_show
 		return
 	}
-	entries := make([]rofi.Entry, 0, in.db.Len())
+	entries := make([]rofiapi.Entry, 0, in.db.Len())
 	for _, b := range allBookmarks {
 		id := fmt.Sprint(b.ID)
 		for j := len(id); j < numPadding; j++ {
@@ -145,7 +145,7 @@ func (in *InputHandler) HandleBookmarksShow() {
 			text = b.URL
 		}
 
-		entries = append(entries, rofi.Entry{
+		entries = append(entries, rofiapi.Entry{
 			Text: formatEntryText(fmt.Sprintf("%s. %s", id, text)),
 			Meta: strings.Join(b.Tags, " "),
 		})
@@ -156,8 +156,8 @@ func (in *InputHandler) HandleBookmarksShow() {
 	in.api.Data.Bookmark = bukudb.Bookmark{}
 }
 
-func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofi.State) {
-	if rofiState == rofi.StateCustomKeybinding1 {
+func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofiapi.State) {
+	if rofiState == rofiapi.StateCustomKeybinding1 {
 		in.handleAddShow()
 		return
 	}
@@ -179,11 +179,11 @@ func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofi.State
 	in.api.Data.Bookmark = b
 
 	switch rofiState {
-	case rofi.StateCustomKeybinding2:
+	case rofiapi.StateCustomKeybinding2:
 		in.handleModifyShow()
-	case rofi.StateCustomKeybinding3:
+	case rofiapi.StateCustomKeybinding3:
 		in.handleDeleteConfirmShow()
-	case rofi.StateSelected:
+	case rofiapi.StateSelected:
 		in.handleGotoExec()
 	default:
 		in.HandleBookmarksShow()
@@ -191,19 +191,19 @@ func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofi.State
 }
 
 func (in *InputHandler) handleAddShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"select a field to add, all are optional except the url", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "true"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "true"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	b := in.api.Data.Bookmark
 	b.ID = uint16(in.db.Len() + 1)
-	entries := []rofi.Entry{{Text: op_back}}
+	entries := []rofiapi.Entry{{Text: op_back}}
 	bookmark := multiLineBookmark(b)
 	for _, l := range bookmark {
-		entries = append(entries, rofi.Entry{Text: l})
+		entries = append(entries, rofiapi.Entry{Text: l})
 	}
-	entries = append(entries, rofi.Entry{Text: op_confirm})
+	entries = append(entries, rofiapi.Entry{Text: op_confirm})
 	in.api.Entries = entries
 
 	in.api.Data.State = rofidata.St_add_select
@@ -246,11 +246,11 @@ func (in *InputHandler) handleAddSelect(input string) {
 }
 
 func (in *InputHandler) handleAddTitleShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup("enter a title", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup("enter a title", "", "")
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -271,11 +271,11 @@ func (in *InputHandler) handleAddTitleSelect(input string) {
 }
 
 func (in *InputHandler) handleAddUrlShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup("enter a url", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup("enter a url", "", "")
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -296,11 +296,11 @@ func (in *InputHandler) handleAddUrlSelect(input string) {
 }
 
 func (in *InputHandler) handleAddCommentShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup("enter a comment", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup("enter a comment", "", "")
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -321,12 +321,12 @@ func (in *InputHandler) handleAddCommentSelect(input string) {
 }
 
 func (in *InputHandler) handleAddTagsShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"enter some tags", "'mytag, some-tag, a tag'", "")
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -375,15 +375,15 @@ func (in *InputHandler) handleGotoExec() {
 }
 
 func (in *InputHandler) handleModifyShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"select a field to edit", "", "")
-	in.api.Options[rofi.OptionNoCustom] = "true"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "true"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	entries := []rofi.Entry{{Text: op_back}}
+	entries := []rofiapi.Entry{{Text: op_back}}
 	bookmark := multiLineBookmark(in.api.Data.Bookmark)
 	for _, l := range bookmark {
-		entries = append(entries, rofi.Entry{Text: l})
+		entries = append(entries, rofiapi.Entry{Text: l})
 	}
 
 	in.api.Entries = entries
@@ -416,12 +416,12 @@ func (in *InputHandler) handleModifySelect(input string) {
 }
 
 func (in *InputHandler) handleModifyTitleShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"enter a new title", "", in.api.Data.Bookmark.Title)
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -441,17 +441,17 @@ func (in *InputHandler) handleModifyTitleSelect(input string) {
 		in.api.Data.State = rofidata.St_modify_title_select
 	} else {
 		in.api.Data.Bookmark.Title = input
-		in.handleModifyTitleShow()
+		in.handleModifyShow()
 	}
 }
 
 func (in *InputHandler) handleModifyUrlShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"enter a new url", "", in.api.Data.Bookmark.URL)
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 	}
 
@@ -468,17 +468,17 @@ func (in *InputHandler) handleModifyUrlSelect(input string) {
 		in.api.Data.State = rofidata.St_modify_url_select
 	} else {
 		in.api.Data.Bookmark.URL = input
-		in.handleModifyUrlShow()
+		in.handleModifyShow()
 	}
 }
 
 func (in *InputHandler) handleModifyCommentShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"enter a new comment", "", in.api.Data.Bookmark.Comment)
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -498,19 +498,19 @@ func (in *InputHandler) handleModifyCommentSelect(input string) {
 		in.api.Data.State = rofidata.St_modify_comment_select
 	} else {
 		in.api.Data.Bookmark.Comment = input
-		in.handleModifyCommentShow()
+		in.handleModifyShow()
 	}
 }
 
 func (in *InputHandler) handleModifyTagsShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"add or remove tags",
 		"'+ newtag1, ...' or '- oldtag1, ...'",
 		strings.Join(in.api.Data.Bookmark.Tags, ", "))
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 		{Text: op_delete},
 	}
@@ -528,7 +528,7 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 			in.api.Data.State = rofidata.St_modify_tags_select
 		} else {
 			in.api.Data.Bookmark.Tags = []string{}
-			in.handleModifyTagsShow()
+			in.handleModifyShow()
 		}
 	case strings.HasPrefix(input, "+"):
 		tags := getTagsFromInput(input[1:])
@@ -546,7 +546,7 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 				return strings.ToLower(in.api.Data.Bookmark.Tags[i]) <
 					strings.ToLower(in.api.Data.Bookmark.Tags[j])
 			})
-			in.handleModifyTagsShow()
+			in.handleModifyShow()
 		}
 	case strings.HasPrefix(input, "-"):
 		tags := getTagsFromInput(input[1:])
@@ -561,7 +561,7 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 				}
 			}
 			in.api.Data.Bookmark.Tags = tmp
-			in.handleModifyTagsShow()
+			in.handleModifyShow()
 		}
 	default:
 		in.handleModifyTagsShow()
@@ -569,12 +569,12 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 }
 
 func (in *InputHandler) handleDeleteConfirmShow() {
-	in.api.Options[rofi.OptionMessage] = generatePangoMarkup(
+	in.api.Options[rofiapi.OptionMessage] = generatePangoMarkup(
 		"delete? (yes/No)", "", in.api.Data.Bookmark.URL)
-	in.api.Options[rofi.OptionNoCustom] = "false"
-	in.api.Options[rofi.OptionUseHotKeys] = "false"
+	in.api.Options[rofiapi.OptionNoCustom] = "false"
+	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	in.api.Entries = []rofi.Entry{
+	in.api.Entries = []rofiapi.Entry{
 		{Text: op_back},
 	}
 
@@ -606,13 +606,13 @@ func (in *InputHandler) getSelectedFromInput(input string) (bukudb.Bookmark, err
 
 // SetMessageToError sets rofi's message box to the text of an error and
 // replaces rofi's entries with the back option
-func SetMessageToError(api *rofi.RofiApi[*rofidata.Data], err error) {
+func SetMessageToError(api *rofiapi.RofiApi[*rofidata.Data], err error) {
 	log.Println(err)
-	api.Options[rofi.OptionMessage] = fmt.Sprintf(
+	api.Options[rofiapi.OptionMessage] = fmt.Sprintf(
 		"<markup><span font_weight=\"bold\">error:</span><span> %s</span></markup>",
-		escapePangoMarkup(err.Error()))
-	api.Options[rofi.OptionNoCustom] = "true"
-	api.Entries = []rofi.Entry{{Text: op_back}}
+		rofiapi.EscapePangoMarkup(err.Error()))
+	api.Options[rofiapi.OptionNoCustom] = "true"
+	api.Entries = []rofiapi.Entry{{Text: op_back}}
 }
 
 func getIdFromBookmarkString(input string) (uint16, error) {
@@ -665,19 +665,19 @@ func generatePangoMarkup(instructions, example, currentValue string) string {
 	markup := "<markup>"
 
 	if instructions != "" {
-		instructions = escapePangoMarkup(instructions)
+		instructions = rofiapi.EscapePangoMarkup(instructions)
 		markup += fmt.Sprintf(
 			"<span font_weight=\"bold\">%s</span>\r", instructions)
 	}
 	if example != "" {
-		example = escapePangoMarkup(example)
+		example = rofiapi.EscapePangoMarkup(example)
 		markup += fmt.Sprintf(
 			"<span font_weight=\"bold\">example:</span><span> <i>%s</i></span>\r",
 			example)
 	}
 	if currentValue != "" {
 		currentValue = truncate(currentValue, entryMaxLen)
-		currentValue = escapePangoMarkup(currentValue)
+		currentValue = rofiapi.EscapePangoMarkup(currentValue)
 		markup += fmt.Sprintf(
 			"<span font_weight=\"bold\">current:</span><span> <u>%s</u></span>",
 			currentValue)
@@ -691,18 +691,6 @@ func formatEntryText(e string) string {
 	e = truncate(e, entryMaxLen)
 	e = replaceNewlines(e)
 	return e
-}
-
-func escapePangoMarkup(input string) string {
-	replacer := strings.NewReplacer(
-		"&", "&amp;",
-		"<", "&lt;",
-		">", "&gt;",
-		"'", "&#39;",
-		"\"", "&quot;",
-		"\n", "\r",
-	)
-	return replacer.Replace(input)
 }
 
 func truncate(s string, l int) string {

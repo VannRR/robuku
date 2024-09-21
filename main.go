@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"robuku/bukudb"
-	"robuku/inputhandler"
-	"robuku/rofi"
-	"robuku/rofidata"
+	"github.com/VannRR/robuku/bukudb"
+	"github.com/VannRR/robuku/inputhandler"
+	"github.com/VannRR/rofi-api"
+	"github.com/VannRR/robuku/rofidata"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 
 func main() {
 	data := rofidata.Data{}
-	api, err := rofi.NewRofiApi(&data)
+	api, err := rofiapi.NewRofiApi(&data)
 	if err != nil {
 		inputhandler.SetMessageToError(api, err)
 		return
@@ -57,7 +57,7 @@ func getBukuDbPath() string {
 	return ""
 }
 
-func handleMissingDbPath(api *rofi.RofiApi[*rofidata.Data]) {
+func handleMissingDbPath(api *rofiapi.RofiApi[*rofidata.Data]) {
 	xdg := "$XDG_DATA_HOME/buku/bookmarks.db"
 	home := "$HOME/.local/share/buku/bookmarks.db"
 	err := fmt.Errorf(
