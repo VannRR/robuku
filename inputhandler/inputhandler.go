@@ -4,6 +4,7 @@ package inputhandler
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"slices"
@@ -13,7 +14,7 @@ import (
 
 	"github.com/VannRR/robuku/bukudb"
 	"github.com/VannRR/robuku/rofidata"
-	"github.com/VannRR/rofi-api"
+	rofiapi "github.com/VannRR/rofi-api"
 )
 
 const robukuBrowserEnvVar = "ROBUKU_BROWSER"
@@ -141,13 +142,21 @@ func (in *InputHandler) HandleBookmarksShow() {
 		}
 
 		text := b.Title
+		meta := strings.Join(b.Tags, " ")
+
 		if b.Title == "" {
 			text = b.URL
+		} else {
+			if meta != "" {
+				meta += " " + cleanURL(b.URL)
+			} else {
+				meta = cleanURL(b.URL)
+			}
 		}
 
 		entries = append(entries, rofiapi.Entry{
 			Text: formatEntryText(fmt.Sprintf("%s. %s", id, text)),
-			Meta: strings.Join(b.Tags, " "),
+			Meta: meta,
 		})
 	}
 
@@ -709,4 +718,14 @@ func truncate(s string, l int) string {
 
 func replaceNewlines(s string) string {
 	return strings.ReplaceAll(s, "\n", " ")
+}
+
+func cleanURL(rawURL string) string {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	parsedURL.Scheme = ""
+	parsedURL.Host = strings.TrimPrefix(parsedURL.Host, "www.")
+	return strings.TrimPrefix(parsedURL.String(), "//")
 }

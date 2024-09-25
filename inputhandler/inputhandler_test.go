@@ -146,9 +146,9 @@ func Test_HandleBookmarksShow(t *testing.T) {
 	checkOptions(t, expectedOptions, in.api.Options)
 
 	expectedEntries := []rofiapi.Entry{
-		{Text: "0001. metadata (title) google", Meta: "google tag2 tag3"},
-		{Text: "0002. metadata (title) b", Meta: "b tag2 tag3"},
-		{Text: "0003. metadata (title) c"},
+		{Text: "0001. metadata (title) google", Meta: "google tag2 tag3 google.com"},
+		{Text: "0002. metadata (title) b", Meta: "b tag2 tag3 b.com"},
+		{Text: "0003. metadata (title) c", Meta: "c.com"},
 		{Text: "0004. https://www.d.com"},
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
