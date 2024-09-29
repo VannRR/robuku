@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/VannRR/robuku/bukudb"
-	"github.com/VannRR/robuku/rofidata"
 	"github.com/VannRR/rofi-api"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -153,7 +152,7 @@ func Test_HandleBookmarksShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 
 	if in.api.Data.Bookmark.ID != 0 {
 		t.Errorf("expected Bookmark ID '0', got '%d'", in.api.Data.Bookmark.ID)
@@ -165,30 +164,30 @@ func Test_handleBookmarksSelect(t *testing.T) {
 
 	// selected add option
 	in.handleBookmarksSelect("", rofiapi.StateCustomKeybinding1)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 
 	// selected modify option
 	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateCustomKeybinding2)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 
 	// selected delete option
 	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateCustomKeybinding3)
-	checkState(t, rofidata.St_delete_confirm_select, in.api.Data.State)
+	checkState(t, St_delete_confirm_select, in.api.Data.State)
 
 	// selected valid bookmark
 	in.handleBookmarksSelect("0001. metadata (title) a", rofiapi.StateSelected)
-	checkState(t, rofidata.St_goto_exec, in.api.Data.State)
+	checkState(t, St_goto_exec, in.api.Data.State)
 	if in.api.Data.Bookmark.ID != 1 {
 		t.Errorf("expected Bookmark ID '1', got '%d'", in.api.Data.Bookmark.ID)
 	}
 
 	// selected invalid bookmark that has no id
 	in.handleBookmarksSelect("invalid bookmark", rofiapi.StateSelected)
-	checkState(t, rofidata.St_bookmarks_show, in.api.Data.State)
+	checkState(t, St_bookmarks_show, in.api.Data.State)
 
 	// selected invalid bookmark that has id out of range
 	in.handleBookmarksSelect("0099. invalid id", rofiapi.StateSelected)
-	checkState(t, rofidata.St_bookmarks_show, in.api.Data.State)
+	checkState(t, St_bookmarks_show, in.api.Data.State)
 }
 
 func Test_handleAddShow(t *testing.T) {
@@ -212,7 +211,7 @@ func Test_handleAddShow(t *testing.T) {
 	expectedEntries = append(expectedEntries, rofiapi.Entry{Text: op_confirm})
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 }
 
 func Test_handleAddSelect(t *testing.T) {
@@ -220,36 +219,36 @@ func Test_handleAddSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddSelect(op_back)
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 
 	// selected confirm option with no url entered
 	in.handleAddSelect(op_confirm)
-	checkState(t, rofidata.St_add_show, in.api.Data.State)
+	checkState(t, St_add_show, in.api.Data.State)
 
 	// selected confirm option with url entered
 	in.api.Data.Bookmark.URL = "https://www.a-new-bookmark.com"
 	in.handleAddSelect(op_confirm)
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 
 	// selected title
 	in.handleAddSelect("1. (title)")
-	checkState(t, rofidata.St_add_title_select, in.api.Data.State)
+	checkState(t, St_add_title_select, in.api.Data.State)
 
 	// selected url
 	in.handleAddSelect("> (url)")
-	checkState(t, rofidata.St_add_url_select, in.api.Data.State)
+	checkState(t, St_add_url_select, in.api.Data.State)
 
 	// selected comment
 	in.handleAddSelect("+ (comment)")
-	checkState(t, rofidata.St_add_comment_select, in.api.Data.State)
+	checkState(t, St_add_comment_select, in.api.Data.State)
 
 	// selected tags
 	in.handleAddSelect("# (tags)")
-	checkState(t, rofidata.St_add_tags_select, in.api.Data.State)
+	checkState(t, St_add_tags_select, in.api.Data.State)
 
 	// selected invalid
 	in.handleAddSelect("AAAAAAA")
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 }
 
 func Test_handleAddTitleShow(t *testing.T) {
@@ -268,7 +267,7 @@ func Test_handleAddTitleShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_add_title_select, in.api.Data.State)
+	checkState(t, St_add_title_select, in.api.Data.State)
 }
 
 func Test_handleAddTitleSelect(t *testing.T) {
@@ -276,11 +275,11 @@ func Test_handleAddTitleSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddTitleSelect(op_back)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 
 	// selected default option, entered new title
 	in.handleAddTitleSelect("some title")
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "some title" {
 		t.Errorf("expected bookmark title 'some title', got '%v'",
 			in.api.Data.Bookmark.Title)
@@ -288,7 +287,7 @@ func Test_handleAddTitleSelect(t *testing.T) {
 
 	// selected delete option
 	in.handleAddTitleSelect(op_delete)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "" {
 		t.Errorf("expected bookmark title '', got '%v'",
 			in.api.Data.Bookmark.Title)
@@ -311,7 +310,7 @@ func Test_handleAddUrlShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_add_url_select, in.api.Data.State)
+	checkState(t, St_add_url_select, in.api.Data.State)
 }
 
 func Test_handleAddUrlSelect(t *testing.T) {
@@ -319,11 +318,11 @@ func Test_handleAddUrlSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddUrlSelect(op_back)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 
 	// selected default option, entered new url
 	in.handleAddUrlSelect("some url")
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.URL != "some url" {
 		t.Errorf("expected bookmark url 'some url', got '%v'",
 			in.api.Data.Bookmark.URL)
@@ -331,7 +330,7 @@ func Test_handleAddUrlSelect(t *testing.T) {
 
 	// selected delete option
 	in.handleAddUrlSelect(op_delete)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.URL != "" {
 		t.Errorf("expected bookmark url '', got '%v'",
 			in.api.Data.Bookmark.URL)
@@ -354,7 +353,7 @@ func Test_handleAddCommentShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_add_comment_select, in.api.Data.State)
+	checkState(t, St_add_comment_select, in.api.Data.State)
 }
 
 func Test_handleAddCommentSelect(t *testing.T) {
@@ -362,11 +361,11 @@ func Test_handleAddCommentSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddCommentSelect(op_back)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 
 	// selected default option, entered new comment
 	in.handleAddCommentSelect("some comment")
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "some comment" {
 		t.Errorf("expected bookmark comment 'some comment', got '%v'",
 			in.api.Data.Bookmark.Comment)
@@ -374,7 +373,7 @@ func Test_handleAddCommentSelect(t *testing.T) {
 
 	// selected delete option
 	in.handleAddCommentSelect(op_delete)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "" {
 		t.Errorf("expected bookmark comment '', got '%v'",
 			in.api.Data.Bookmark.Comment)
@@ -398,7 +397,7 @@ func Test_handleAddTagsShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_add_tags_select, in.api.Data.State)
+	checkState(t, St_add_tags_select, in.api.Data.State)
 }
 
 func Test_handleAddTagsSelect(t *testing.T) {
@@ -406,11 +405,11 @@ func Test_handleAddTagsSelect(t *testing.T) {
 
 	// selected back option
 	in.handleAddTagsSelect(op_back)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 
 	// selected default option, entered new tags
 	in.handleAddTagsSelect("some, tags")
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Tags[0] != "some" {
 		t.Errorf("expected bookmark tag 'some', got '%v'",
 			in.api.Data.Bookmark.Tags[0])
@@ -422,7 +421,7 @@ func Test_handleAddTagsSelect(t *testing.T) {
 
 	// selected delete option
 	in.handleAddTagsSelect(op_delete)
-	checkState(t, rofidata.St_add_select, in.api.Data.State)
+	checkState(t, St_add_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 0 {
 		t.Errorf("expected bookmark tags empty , got length '%v'",
 			in.api.Data.Bookmark.Tags)
@@ -446,7 +445,7 @@ func Test_handleModifyShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 }
 
 func Test_handleModifySelect(t *testing.T) {
@@ -454,27 +453,27 @@ func Test_handleModifySelect(t *testing.T) {
 
 	// selected back option
 	in.handleModifySelect(op_back)
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 
 	// selected title
 	in.handleModifySelect("1. (title)")
-	checkState(t, rofidata.St_modify_title_select, in.api.Data.State)
+	checkState(t, St_modify_title_select, in.api.Data.State)
 
 	// selected url
 	in.handleModifySelect("> (url)")
-	checkState(t, rofidata.St_modify_url_select, in.api.Data.State)
+	checkState(t, St_modify_url_select, in.api.Data.State)
 
 	// selected comment
 	in.handleModifySelect("+ (comment)")
-	checkState(t, rofidata.St_modify_comment_select, in.api.Data.State)
+	checkState(t, St_modify_comment_select, in.api.Data.State)
 
 	// selected tags
 	in.handleModifySelect("# (tags)")
-	checkState(t, rofidata.St_modify_tags_select, in.api.Data.State)
+	checkState(t, St_modify_tags_select, in.api.Data.State)
 
 	// selected invalid
 	in.handleModifySelect("AAAAAAA")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 }
 
 func Test_handleModifyTitleShow(t *testing.T) {
@@ -495,7 +494,7 @@ func Test_handleModifyTitleShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_modify_title_select, in.api.Data.State)
+	checkState(t, St_modify_title_select, in.api.Data.State)
 }
 
 func Test_handleModifyTitleSelect(t *testing.T) {
@@ -505,18 +504,18 @@ func Test_handleModifyTitleSelect(t *testing.T) {
 	// selected delete option
 	in.api.Data.Bookmark.Title = "some title"
 	in.handleModifyTitleSelect(op_delete)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "" {
 		t.Errorf("expected bookmark title '', got '%s'", in.api.Data.Bookmark.Title)
 	}
 
 	// selected back option
 	in.handleModifyTitleSelect(op_back)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 
 	// entered new title
 	in.handleModifyTitleSelect("some new title")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Title != "some new title" {
 		t.Errorf("expected bookmark title 'some new title', got '%s'", in.api.Data.Bookmark.Title)
 	}
@@ -539,7 +538,7 @@ func Test_handleModifyUrlShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_modify_url_select, in.api.Data.State)
+	checkState(t, St_modify_url_select, in.api.Data.State)
 }
 
 func Test_handleModifyUrlSelect(t *testing.T) {
@@ -549,18 +548,18 @@ func Test_handleModifyUrlSelect(t *testing.T) {
 	// entered empty input
 	in.api.Data.Bookmark.URL = "old url"
 	in.handleModifyUrlSelect("")
-	checkState(t, rofidata.St_modify_url_select, in.api.Data.State)
+	checkState(t, St_modify_url_select, in.api.Data.State)
 	if in.api.Data.Bookmark.URL != "old url" {
 		t.Errorf("expected bookmark url 'old url', got '%s'", in.api.Data.Bookmark.URL)
 	}
 
 	// selected back option
 	in.handleModifyUrlSelect(op_back)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 
 	// entered new url
 	in.handleModifyUrlSelect("some new url")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.URL != "some new url" {
 		t.Errorf("expected bookmark url 'some new url', got '%s'", in.api.Data.Bookmark.URL)
 	}
@@ -584,7 +583,7 @@ func Test_handleModifyCommentShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_modify_comment_select, in.api.Data.State)
+	checkState(t, St_modify_comment_select, in.api.Data.State)
 }
 
 func Test_handleModifyCommentSelect(t *testing.T) {
@@ -594,18 +593,18 @@ func Test_handleModifyCommentSelect(t *testing.T) {
 	// selected delete option
 	in.api.Data.Bookmark.Comment = "some comment"
 	in.handleModifyCommentSelect(op_delete)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "" {
 		t.Errorf("expected bookmark comment '', got '%s'", in.api.Data.Bookmark.Comment)
 	}
 
 	// selected back option
 	in.handleModifyCommentSelect(op_back)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 
 	// entered new comment
 	in.handleModifyCommentSelect("some new comment")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if in.api.Data.Bookmark.Comment != "some new comment" {
 		t.Errorf("expected bookmark comment 'some new comment', got '%s'",
 			in.api.Data.Bookmark.Comment)
@@ -632,7 +631,7 @@ func Test_handleModifyTagShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_modify_tags_select, in.api.Data.State)
+	checkState(t, St_modify_tags_select, in.api.Data.State)
 }
 
 func Test_handleModifyTagSelect(t *testing.T) {
@@ -641,12 +640,12 @@ func Test_handleModifyTagSelect(t *testing.T) {
 
 	// selected back option
 	in.handleModifyTagsSelect(op_back)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 
 	// selected delete option
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect(op_delete)
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 0 {
 		t.Errorf("expected bookmark tags len '0', got '%d'", len(in.api.Data.Bookmark.Tags))
 	}
@@ -654,7 +653,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered new tags starting with + prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("+ wow, zow")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 4 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			4, len(in.api.Data.Bookmark.Tags))
@@ -663,7 +662,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered existing tags starting with + prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("+ tag1, tag2")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
@@ -672,7 +671,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered existing tags starting with - prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("- tag1, tag2")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 0 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			0, len(in.api.Data.Bookmark.Tags))
@@ -681,7 +680,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered new tags starting with - prefix
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("- new1, new2")
-	checkState(t, rofidata.St_modify_select, in.api.Data.State)
+	checkState(t, St_modify_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
@@ -690,7 +689,7 @@ func Test_handleModifyTagSelect(t *testing.T) {
 	// entered test without prefix, default option
 	in.api.Data.Bookmark.Tags = []string{"tag1", "tag2"}
 	in.handleModifyTagsSelect("AAAAAAA")
-	checkState(t, rofidata.St_modify_tags_select, in.api.Data.State)
+	checkState(t, St_modify_tags_select, in.api.Data.State)
 	if len(in.api.Data.Bookmark.Tags) != 2 {
 		t.Errorf("expected bookmark tags len '%d', got '%d'",
 			2, len(in.api.Data.Bookmark.Tags))
@@ -713,7 +712,7 @@ func Test_handleDeleteConfirmShow(t *testing.T) {
 	}
 	checkEntries(t, expectedEntries, in.api.Entries)
 
-	checkState(t, rofidata.St_delete_confirm_select, in.api.Data.State)
+	checkState(t, St_delete_confirm_select, in.api.Data.State)
 }
 
 func Test_handleDeleteConfirmSelect(t *testing.T) {
@@ -722,13 +721,13 @@ func Test_handleDeleteConfirmSelect(t *testing.T) {
 	// selected back option
 	in.api.Data.Bookmark.ID = 1
 	in.handleDeleteConfirmSelect(op_back)
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 
 	// did not enter 'yes'
 	in.api.Data.Bookmark.ID = 1
 	oldLen := in.db.Len()
 	in.handleDeleteConfirmSelect("Yes")
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 	if in.db.Len() != oldLen {
 		t.Errorf("expected bookmark db len '%d', got '%d'",
 			oldLen, in.db.Len())
@@ -736,7 +735,7 @@ func Test_handleDeleteConfirmSelect(t *testing.T) {
 	// did not enter 'yes'
 	in.api.Data.Bookmark.ID = 1
 	in.handleDeleteConfirmSelect("YES")
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 	if in.db.Len() != oldLen {
 		t.Errorf("expected bookmark db len '%d', got '%d'",
 			oldLen, in.db.Len())
@@ -744,7 +743,7 @@ func Test_handleDeleteConfirmSelect(t *testing.T) {
 	// did not enter 'yes'
 	in.api.Data.Bookmark.ID = 1
 	in.handleDeleteConfirmSelect("no")
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 	if in.db.Len() != oldLen {
 		t.Errorf("expected bookmark db len '%d', got '%d'",
 			oldLen, in.db.Len())
@@ -752,7 +751,7 @@ func Test_handleDeleteConfirmSelect(t *testing.T) {
 	// did not enter 'yes'
 	in.api.Data.Bookmark.ID = 1
 	in.handleDeleteConfirmSelect("foo")
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 	if in.db.Len() != oldLen {
 		t.Errorf("expected bookmark db len '%d', got '%d'",
 			oldLen, in.db.Len())
@@ -762,7 +761,7 @@ func Test_handleDeleteConfirmSelect(t *testing.T) {
 	in.api.Data.Bookmark.ID = 1
 	oldLen = in.db.Len()
 	in.handleDeleteConfirmSelect("yes")
-	checkState(t, rofidata.St_bookmarks_select, in.api.Data.State)
+	checkState(t, St_bookmarks_select, in.api.Data.State)
 	if in.db.Len() != oldLen-1 {
 		t.Errorf("expected bookmark db len '%d', got '%d'",
 			oldLen-1, in.db.Len())
@@ -818,7 +817,7 @@ func checkOptions(t *testing.T, expectedOptions, actualOptions map[rofiapi.Optio
 	}
 }
 
-func checkState(t *testing.T, expectedState, actualState rofidata.AppState) {
+func checkState(t *testing.T, expectedState, actualState State) {
 	t.Helper()
 
 	if actualState != expectedState {
@@ -831,8 +830,7 @@ func initInputHandler(t *testing.T) *InputHandler {
 	t.Helper()
 
 	db := newMockDB()
-	data := rofidata.Data{}
-	api, err := rofiapi.NewRofiApi(&data)
+	api, err := rofiapi.NewRofiApi(Data{})
 	if err != nil {
 		t.Fatalf("expected no error from NewRofiApi(), got %v", err)
 	}
