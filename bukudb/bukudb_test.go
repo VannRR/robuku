@@ -62,7 +62,7 @@ func Test_Get(t *testing.T) {
 		t.Fatalf("expected bookmark '%v', got '%v'", expected, actual)
 	}
 
-	actual, err = db.Get(10)
+	_, err = db.Get(10)
 	if err == nil {
 		t.Fatal("expected ID 10 to cause err, got nil")
 	}

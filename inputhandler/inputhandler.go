@@ -23,31 +23,33 @@ type State byte
 
 const (
 	St_null                  State = iota // 0
-	St_bookmarks_show                     // 1
-	St_bookmarks_select                   // 2
-	St_add_show                           // 3
-	St_add_select                         // 4
-	St_add_title_show                     // 5
-	St_add_title_select                   // 6
-	St_add_url_show                       // 7
-	St_add_url_select                     // 8
-	St_add_comment_show                   // 9
-	St_add_comment_select                 // 10
-	St_add_tags_show                      // 11
-	St_add_tags_select                    // 12
-	St_goto_exec                          // 13
-	St_modify_show                        // 14
-	St_modify_select                      // 15
-	St_modify_title_show                  // 16
-	St_modify_title_select                // 17
-	St_modify_url_show                    // 18
-	St_modify_url_select                  // 19
-	St_modify_comment_show                // 20
-	St_modify_comment_select              // 21
-	St_modify_tags_show                   // 22
-	St_modify_tags_select                 // 23
-	St_delete_confirm_show                // 24
-	St_delete_confirm_select              // 25
+	St_error_show                         // 1
+	St_error_select                       // 2
+	St_bookmarks_show                     // 3
+	St_bookmarks_select                   // 4
+	St_add_show                           // 5
+	St_add_select                         // 6
+	St_add_title_show                     // 7
+	St_add_title_select                   // 8
+	St_add_url_show                       // 9
+	St_add_url_select                     // 10
+	St_add_comment_show                   // 11
+	St_add_comment_select                 // 12
+	St_add_tags_show                      // 13
+	St_add_tags_select                    // 14
+	St_goto_exec                          // 15
+	St_modify_show                        // 16
+	St_modify_select                      // 17
+	St_modify_title_show                  // 18
+	St_modify_title_select                // 19
+	St_modify_url_show                    // 20
+	St_modify_url_select                  // 21
+	St_modify_comment_show                // 22
+	St_modify_comment_select              // 23
+	St_modify_tags_show                   // 24
+	St_modify_tags_select                 // 25
+	St_delete_confirm_show                // 26
+	St_delete_confirm_select              // 27
 )
 
 const (
@@ -81,7 +83,6 @@ type Data struct {
 type InputHandler struct {
 	db      db
 	api     *rofiapi.RofiApi[Data]
-	data    Data
 	browser string
 }
 
@@ -101,6 +102,8 @@ func (in *InputHandler) HandleInput(input string) {
 	rofiState := in.api.GetState()
 
 	switch in.api.Data.State {
+	case St_error_show:
+		in.api.Data.State = St_error_select
 	case St_bookmarks_show:
 		in.HandleBookmarksShow()
 	case St_bookmarks_select:

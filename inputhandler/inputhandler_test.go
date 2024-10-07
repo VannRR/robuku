@@ -13,8 +13,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const sqlTestDbPath string = "./bookmarks-test.db"
-
 type mockDB struct {
 	bookmarks []bukudb.Bookmark
 }
@@ -835,64 +833,4 @@ func initInputHandler(t *testing.T) *InputHandler {
 		t.Fatalf("expected no error from NewRofiApi(), got %v", err)
 	}
 	return NewInputHandler(db, api)
-}
-
-func isMatchingBookmarkSlice(t *testing.T, expected, actual []bukudb.Bookmark) bool {
-	t.Helper()
-
-	if len(expected) != len(actual) {
-		t.Errorf("expected bookmarks length '%d', got '%d'",
-			len(expected), len(actual))
-		return false
-	}
-
-	match := true
-	for i := 0; i < len(expected); i++ {
-		ok := isMatchingBookmark(t, expected[i], actual[i])
-		if !ok && match {
-			match = false
-		}
-	}
-
-	return match
-}
-
-func isMatchingBookmark(t *testing.T, expected, actual bukudb.Bookmark) bool {
-	t.Helper()
-
-	match := true
-
-	if expected.ID != actual.ID {
-		t.Errorf("expected bookmark ID '%d', got '%d'",
-			expected.ID, actual.ID)
-		match = false
-	}
-
-	if expected.URL != actual.URL {
-		t.Errorf("expected bookmark URL '%s', got '%s'",
-			expected.URL, actual.URL)
-		match = false
-	}
-
-	if expected.Title != actual.Title {
-		t.Errorf("expected bookmark Title '%s', got '%s'",
-			expected.Title, actual.Title)
-		match = false
-	}
-
-	if len(expected.Tags) != len(actual.Tags) {
-		t.Errorf("expected bookmark Tags length '%d', got '%d'",
-			len(expected.Tags), len(actual.Tags))
-		match = false
-	} else {
-		for j := 0; j < len(expected.Tags); j++ {
-			if expected.Tags[j] != actual.Tags[j] {
-				t.Errorf("expected bookmark Tag '%s', got '%s'",
-					expected.Tags[j], actual.Tags[j])
-				match = false
-			}
-		}
-	}
-
-	return match
 }

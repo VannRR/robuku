@@ -17,20 +17,35 @@ const (
 
 func main() {
 	api, err := rofiapi.NewRofiApi(inputhandler.Data{})
+
+	if !api.IsRanByRofi() {
+		fmt.Println("this is a rofi script, for more information check the rofi manual")
+	}
+
+	if api.Data.State == inputhandler.St_error_select {
+		return
+	}
+
 	if err != nil {
 		inputhandler.SetMessageToError(api, err)
+		api.Data.State = inputhandler.St_error_show
+		api.Draw()
 		return
 	}
 	bukuDbPath := getBukuDbPath()
 
 	if bukuDbPath == "" {
 		handleMissingDbPath(api)
+		api.Data.State = inputhandler.St_error_show
+		api.Draw()
 		return
 	}
 
 	db, err := bukudb.NewBukuDB(bukuDbPath)
 	if err != nil {
 		inputhandler.SetMessageToError(api, err)
+		api.Data.State = inputhandler.St_error_show
+		api.Draw()
 		return
 	}
 
