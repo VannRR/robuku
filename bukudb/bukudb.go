@@ -45,6 +45,21 @@ type Bookmark struct {
 	Comment string
 }
 
+type DBInterface interface {
+	Close() error
+	Len() int
+	GetAll() ([]Bookmark, error)
+	Get(id uint16) (Bookmark, error)
+	Add(bookmark Bookmark) error
+	UpdateTitle(id uint16, title string) error
+	UpdateURL(id uint16, url string) error
+	UpdateComment(id uint16, comment string) error
+	AddTags(id uint16, tags []string) error
+	RemoveTags(id uint16, tags []string) error
+	ClearTags(id uint16) error
+	Remove(id uint16) error
+}
+
 // BukuDB represents a connection to the buku SQLite database.
 type BukuDB struct {
 	dbPath string

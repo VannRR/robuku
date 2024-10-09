@@ -7,7 +7,7 @@ import (
 
 	"github.com/VannRR/robuku/bukudb"
 	"github.com/VannRR/robuku/inputhandler"
-	"github.com/VannRR/rofi-api"
+	rofiapi "github.com/VannRR/rofi-api"
 )
 
 const (
@@ -17,72 +17,71 @@ const (
 
 func main() {
 	api, err := rofiapi.NewRofiApi(inputhandler.Data{})
-
-	if !api.IsRanByRofi() {
-		fmt.Println("this is a rofi script, for more information check the rofi manual")
+	handleInitError(api, err)
+	if api.Data.State != inputhandler.StateErrorSelect {
+		defer api.Draw()
 	}
 
-	if api.Data.State == inputhandler.St_error_select {
-		return
-	}
-
+	bukuDbPath, err := getBukuDbPath()
 	if err != nil {
 		inputhandler.SetMessageToError(api, err)
-		api.Data.State = inputhandler.St_error_show
-		api.Draw()
-		return
-	}
-	bukuDbPath := getBukuDbPath()
-
-	if bukuDbPath == "" {
-		handleMissingDbPath(api)
-		api.Data.State = inputhandler.St_error_show
-		api.Draw()
 		return
 	}
 
 	db, err := bukudb.NewBukuDB(bukuDbPath)
 	if err != nil {
 		inputhandler.SetMessageToError(api, err)
-		api.Data.State = inputhandler.St_error_show
-		api.Draw()
 		return
 	}
 
 	in := inputhandler.NewInputHandler(db, api)
-	handleArgs(in)
-	api.Draw()
+	handleApiInput(api, in)
 }
 
-func getBukuDbPath() string {
+func handleInitError(api *rofiapi.RofiApi[inputhandler.Data], err error) {
+	if !api.IsRanByRofi() {
+		fmt.Println("this is a rofi script, for more information check the rofi manual")
+	}
+
+	if api.Data.State == inputhandler.StateErrorShow {
+		api.Data.State = inputhandler.StateErrorSelect
+	}
+
+	if err != nil {
+		inputhandler.SetMessageToError(api, err)
+	}
+}
+
+func getBukuDbPath() (string, error) {
 	if path := os.Getenv(bukuDbEnvVar); path != "" {
-		return path
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
 	}
 
 	if xdgDataHomeDir := os.Getenv(xdgDataHomeEnvVar); xdgDataHomeDir != "" {
-		return filepath.Join(xdgDataHomeDir, "buku/bookmarks.db")
+		path := filepath.Join(xdgDataHomeDir, "buku/bookmarks.db")
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
 	}
 
 	if homeDir, _ := os.UserHomeDir(); homeDir != "" {
-		return filepath.Join(homeDir, ".local/share/buku/bookmarks.db")
+		path := filepath.Join(homeDir, ".local/share/buku/bookmarks.db")
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
 	}
 
-	return ""
+	return "", fmt.Errorf(
+		"could not find buku bookmarks db path, try setting the env variable $%s",
+		bukuDbEnvVar)
 }
 
-func handleMissingDbPath(api *rofiapi.RofiApi[inputhandler.Data]) {
-	xdg := "$XDG_DATA_HOME/buku/bookmarks.db"
-	home := "$HOME/.local/share/buku/bookmarks.db"
-	err := fmt.Errorf(
-		"could not find path %s or %s, try setting the env variable $%s",
-		xdg, home, bukuDbEnvVar)
-	inputhandler.SetMessageToError(api, err)
-}
-
-func handleArgs(in *inputhandler.InputHandler) {
-	if len(os.Args) <= 1 {
-		in.HandleBookmarksShow()
+func handleApiInput(api *rofiapi.RofiApi[inputhandler.Data], in *inputhandler.InputHandler) {
+	if selected, ok := api.GetSelectedEntry(); ok {
+		in.HandleInput(selected.Text)
 	} else {
-		in.HandleInput(os.Args[1])
+		in.HandleBookmarksShow()
 	}
 }

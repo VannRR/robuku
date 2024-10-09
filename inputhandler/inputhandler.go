@@ -22,57 +22,44 @@ const entryMaxLen = 100
 type State byte
 
 const (
-	St_null                  State = iota // 0
-	St_error_show                         // 1
-	St_error_select                       // 2
-	St_bookmarks_show                     // 3
-	St_bookmarks_select                   // 4
-	St_add_show                           // 5
-	St_add_select                         // 6
-	St_add_title_show                     // 7
-	St_add_title_select                   // 8
-	St_add_url_show                       // 9
-	St_add_url_select                     // 10
-	St_add_comment_show                   // 11
-	St_add_comment_select                 // 12
-	St_add_tags_show                      // 13
-	St_add_tags_select                    // 14
-	St_goto_exec                          // 15
-	St_modify_show                        // 16
-	St_modify_select                      // 17
-	St_modify_title_show                  // 18
-	St_modify_title_select                // 19
-	St_modify_url_show                    // 20
-	St_modify_url_select                  // 21
-	St_modify_comment_show                // 22
-	St_modify_comment_select              // 23
-	St_modify_tags_show                   // 24
-	St_modify_tags_select                 // 25
-	St_delete_confirm_show                // 26
-	St_delete_confirm_select              // 27
+	StateNull                State = iota // 0
+	StateErrorShow                        // 1
+	StateErrorSelect                      // 2
+	StateBookmarksShow                    // 3
+	StateBookmarksSelect                  // 4
+	StateAddShow                          // 5
+	StateAddSelect                        // 6
+	StateAddTitleShow                     // 7
+	StateAddTitleSelect                   // 8
+	StateAddUrlShow                       // 9
+	StateAddUrlSelect                     // 10
+	StateAddCommentShow                   // 11
+	StateAddCommentSelect                 // 12
+	StateAddTagsShow                      // 13
+	StateAddTagsSelect                    // 14
+	StateGotoExec                         // 15
+	StateModifyShow                       // 16
+	StateModifySelect                     // 17
+	StateModifyTitleShow                  // 18
+	StateModifyTitleSelect                // 19
+	StateModifyUrlShow                    // 20
+	StateModifyUrlSelect                  // 21
+	StateModifyCommentShow                // 22
+	StateModifyCommentSelect              // 23
+	StateModifyTagsShow                   // 24
+	StateModifyTagsSelect                 // 25
+	StateDeleteConfirmShow                // 26
+	StateDeleteConfirmSelect              // 27
 )
 
 const (
-	op_add     string = "--> Add"
-	op_back    string = "<-- Back"
-	op_confirm string = "--> Confirm"
-	op_modify  string = "--> Modify"
-	op_delete  string = "--> Delete"
+	opAdd     string = "--> Add"
+	opExit    string = "--> Exit"
+	opBack    string = "<-- Back"
+	opConfirm string = "--> Confirm"
+	opModify  string = "--> Modify"
+	opDelete  string = "--> Delete"
 )
-
-type db interface {
-	Add(bukudb.Bookmark) error
-	AddTags(id uint16, tags []string) error
-	ClearTags(id uint16) error
-	Get(id uint16) (bukudb.Bookmark, error)
-	GetAll() ([]bukudb.Bookmark, error)
-	Len() int
-	Remove(id uint16) error
-	RemoveTags(id uint16, tags []string) error
-	UpdateComment(id uint16, comment string) error
-	UpdateTitle(id uint16, title string) error
-	UpdateURL(id uint16, url string) error
-}
 
 type Data struct {
 	Bookmark bukudb.Bookmark
@@ -81,13 +68,13 @@ type Data struct {
 
 // InputHandler is the struct that handles input from rofi and manages app state
 type InputHandler struct {
-	db      db
+	db      bukudb.DBInterface
 	api     *rofiapi.RofiApi[Data]
 	browser string
 }
 
 // NewInputHandler returns a new instance of the InputHandler struct
-func NewInputHandler(db db, api *rofiapi.RofiApi[Data]) *InputHandler {
+func NewInputHandler(db bukudb.DBInterface, api *rofiapi.RofiApi[Data]) *InputHandler {
 	in := InputHandler{
 		db:      db,
 		api:     api,
@@ -102,55 +89,53 @@ func (in *InputHandler) HandleInput(input string) {
 	rofiState := in.api.GetState()
 
 	switch in.api.Data.State {
-	case St_error_show:
-		in.api.Data.State = St_error_select
-	case St_bookmarks_show:
+	case StateBookmarksShow:
 		in.HandleBookmarksShow()
-	case St_bookmarks_select:
+	case StateBookmarksSelect:
 		in.handleBookmarksSelect(input, rofiState)
-	case St_add_show:
+	case StateAddShow:
 		in.handleAddShow()
-	case St_add_select:
+	case StateAddSelect:
 		in.handleAddSelect(input)
-	case St_add_title_show:
+	case StateAddTitleShow:
 		in.handleAddTitleShow()
-	case St_add_title_select:
+	case StateAddTitleSelect:
 		in.handleAddTitleSelect(input)
-	case St_add_url_show:
+	case StateAddUrlShow:
 		in.handleAddUrlShow()
-	case St_add_url_select:
+	case StateAddUrlSelect:
 		in.handleAddUrlSelect(input)
-	case St_add_comment_show:
+	case StateAddCommentShow:
 		in.handleAddCommentShow()
-	case St_add_comment_select:
+	case StateAddCommentSelect:
 		in.handleAddCommentSelect(input)
-	case St_add_tags_show:
+	case StateAddTagsShow:
 		in.handleAddTagsShow()
-	case St_add_tags_select:
+	case StateAddTagsSelect:
 		in.handleAddTagsSelect(input)
-	case St_modify_show:
+	case StateModifyShow:
 		in.handleModifyShow()
-	case St_modify_select:
+	case StateModifySelect:
 		in.handleModifySelect(input)
-	case St_modify_title_show:
+	case StateModifyTitleShow:
 		in.handleModifyTitleShow()
-	case St_modify_title_select:
+	case StateModifyTitleSelect:
 		in.handleModifyTitleSelect(input)
-	case St_modify_url_show:
+	case StateModifyUrlShow:
 		in.handleModifyUrlShow()
-	case St_modify_url_select:
+	case StateModifyUrlSelect:
 		in.handleModifyUrlSelect(input)
-	case St_modify_comment_show:
+	case StateModifyCommentShow:
 		in.handleModifyCommentShow()
-	case St_modify_comment_select:
+	case StateModifyCommentSelect:
 		in.handleModifyCommentSelect(input)
-	case St_modify_tags_show:
+	case StateModifyTagsShow:
 		in.handleModifyTagsShow()
-	case St_modify_tags_select:
+	case StateModifyTagsSelect:
 		in.handleModifyTagsSelect(input)
-	case St_delete_confirm_show:
+	case StateDeleteConfirmShow:
 		in.handleDeleteConfirmShow()
-	case St_delete_confirm_select:
+	case StateDeleteConfirmSelect:
 		in.handleDeleteConfirmSelect(input)
 	default:
 		log.Printf("Unhandled state: %v", in.api.Data.State)
@@ -168,7 +153,6 @@ func (in *InputHandler) HandleBookmarksShow() {
 	allBookmarks, err := in.db.GetAll()
 	if err != nil {
 		SetMessageToError(in.api, err)
-		in.api.Data.State = St_bookmarks_show
 		return
 	}
 	entries := make([]rofiapi.Entry, 0, in.db.Len())
@@ -198,7 +182,7 @@ func (in *InputHandler) HandleBookmarksShow() {
 	}
 
 	in.api.Entries = entries
-	in.api.Data.State = St_bookmarks_select
+	in.api.Data.State = StateBookmarksSelect
 	in.api.Data.Bookmark = bukudb.Bookmark{}
 }
 
@@ -211,14 +195,12 @@ func (in *InputHandler) handleBookmarksSelect(input string, rofiState rofiapi.St
 	id, err := getIdFromBookmarkString(input)
 	if err != nil {
 		SetMessageToError(in.api, err)
-		in.api.Data.State = St_bookmarks_show
 		return
 	}
 
 	b, err := in.db.Get(id)
 	if err != nil {
 		SetMessageToError(in.api, err)
-		in.api.Data.State = St_bookmarks_show
 		return
 	}
 
@@ -244,33 +226,31 @@ func (in *InputHandler) handleAddShow() {
 
 	b := in.api.Data.Bookmark
 	b.ID = uint16(in.db.Len() + 1)
-	entries := []rofiapi.Entry{{Text: op_back}}
+	entries := []rofiapi.Entry{{Text: opBack}}
 	bookmark := multiLineBookmark(b)
 	for _, l := range bookmark {
 		entries = append(entries, rofiapi.Entry{Text: l})
 	}
-	entries = append(entries, rofiapi.Entry{Text: op_confirm})
+	entries = append(entries, rofiapi.Entry{Text: opConfirm})
 	in.api.Entries = entries
 
-	in.api.Data.State = St_add_select
+	in.api.Data.State = StateAddSelect
 }
 
 func (in *InputHandler) handleAddSelect(input string) {
-	if input == op_back {
+	if input == opBack {
 		in.HandleBookmarksShow()
 		return
 	}
 
-	if input == op_confirm {
+	if input == opConfirm {
 		if in.api.Data.Bookmark.URL == "" {
 			SetMessageToError(in.api, fmt.Errorf("error: bookmark has no url"))
-			in.api.Data.State = St_add_show
 			return
 		}
 		err := in.db.Add(in.api.Data.Bookmark)
 		if err != nil {
 			SetMessageToError(in.api, err)
-			in.api.Data.State = St_bookmarks_show
 			return
 		}
 		in.HandleBookmarksShow()
@@ -297,18 +277,18 @@ func (in *InputHandler) handleAddTitleShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_add_title_select
+	in.api.Data.State = StateAddTitleSelect
 }
 
 func (in *InputHandler) handleAddTitleSelect(input string) {
 	switch input {
-	case op_back:
+	case opBack:
 		break
-	case op_delete:
+	case opDelete:
 		in.api.Data.Bookmark.Title = ""
 	default:
 		in.api.Data.Bookmark.Title = input
@@ -322,18 +302,18 @@ func (in *InputHandler) handleAddUrlShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_add_url_select
+	in.api.Data.State = StateAddUrlSelect
 }
 
 func (in *InputHandler) handleAddUrlSelect(input string) {
 	switch input {
-	case op_back:
+	case opBack:
 		break
-	case op_delete:
+	case opDelete:
 		in.api.Data.Bookmark.URL = ""
 	default:
 		in.api.Data.Bookmark.URL = input
@@ -347,18 +327,18 @@ func (in *InputHandler) handleAddCommentShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_add_comment_select
+	in.api.Data.State = StateAddCommentSelect
 }
 
 func (in *InputHandler) handleAddCommentSelect(input string) {
 	switch input {
-	case op_back:
+	case opBack:
 		break
-	case op_delete:
+	case opDelete:
 		in.api.Data.Bookmark.Comment = ""
 	default:
 		in.api.Data.Bookmark.Comment = input
@@ -373,18 +353,18 @@ func (in *InputHandler) handleAddTagsShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_add_tags_select
+	in.api.Data.State = StateAddTagsSelect
 }
 
 func (in *InputHandler) handleAddTagsSelect(input string) {
 	switch input {
-	case op_back:
+	case opBack:
 		break
-	case op_delete:
+	case opDelete:
 		in.api.Data.Bookmark.Tags = []string{}
 	default:
 		tags := strings.Split(input, ",")
@@ -402,21 +382,20 @@ func (in *InputHandler) handleAddTagsSelect(input string) {
 }
 
 func (in *InputHandler) handleGotoExec() {
-	in.api.Data.State = St_goto_exec
-	if in.browser != "" {
-		cmd := exec.Command(in.browser, in.api.Data.Bookmark.URL)
-		if err := cmd.Start(); err != nil {
-			SetMessageToError(in.api, fmt.Errorf("error opening URL: %w", err))
-			in.api.Data.State = St_bookmarks_show
-		}
-	} else {
-		cmd := exec.Command("xdg-open", in.api.Data.Bookmark.URL)
-		if err := cmd.Start(); err != nil {
-			SetMessageToError(in.api, fmt.Errorf(
+	in.api.Data.State = StateGotoExec
+	b := in.browser
+	if b == "" {
+		b = "xdg-open"
+	}
+	cmd := exec.Command(b, in.api.Data.Bookmark.URL)
+	if err := cmd.Start(); err != nil {
+		e := fmt.Errorf("error opening URL: %w", err)
+		if b == "xdg-open" {
+			e = fmt.Errorf(
 				"error opening URL: xdg-utils is not installed, to use without set env variable $%s",
-				robukuBrowserEnvVar))
-			in.api.Data.State = St_bookmarks_show
+				robukuBrowserEnvVar)
 		}
+		SetMessageToError(in.api, e)
 	}
 }
 
@@ -426,14 +405,14 @@ func (in *InputHandler) handleModifyShow() {
 	in.api.Options[rofiapi.OptionNoCustom] = "true"
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
-	entries := []rofiapi.Entry{{Text: op_back}}
+	entries := []rofiapi.Entry{{Text: opBack}}
 	bookmark := multiLineBookmark(in.api.Data.Bookmark)
 	for _, l := range bookmark {
 		entries = append(entries, rofiapi.Entry{Text: l})
 	}
 
 	in.api.Entries = entries
-	in.api.Data.State = St_modify_select
+	in.api.Data.State = StateModifySelect
 }
 
 func (in *InputHandler) handleModifySelect(input string) {
@@ -442,7 +421,7 @@ func (in *InputHandler) handleModifySelect(input string) {
 		return
 	}
 
-	if input == op_back {
+	if input == opBack {
 		in.HandleBookmarksShow()
 		return
 	}
@@ -468,23 +447,22 @@ func (in *InputHandler) handleModifyTitleShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_modify_title_select
+	in.api.Data.State = StateModifyTitleSelect
 }
 
 func (in *InputHandler) handleModifyTitleSelect(input string) {
-	if input == op_delete {
+	if input == opDelete {
 		input = ""
 	}
 
-	if input == op_back {
+	if input == opBack {
 		in.handleModifyShow()
 	} else if err := in.db.UpdateTitle(in.api.Data.Bookmark.ID, input); err != nil {
 		SetMessageToError(in.api, fmt.Errorf("error updating title: %w", err))
-		in.api.Data.State = St_modify_title_select
 	} else {
 		in.api.Data.Bookmark.Title = input
 		in.handleModifyShow()
@@ -498,20 +476,19 @@ func (in *InputHandler) handleModifyUrlShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
+		{Text: opBack},
 	}
 
-	in.api.Data.State = St_modify_url_select
+	in.api.Data.State = StateModifyUrlSelect
 }
 
 func (in *InputHandler) handleModifyUrlSelect(input string) {
 	if input == "" {
 		in.handleModifyUrlShow()
-	} else if input == op_back {
+	} else if input == opBack {
 		in.handleModifyShow()
 	} else if err := in.db.UpdateURL(in.api.Data.Bookmark.ID, input); err != nil {
 		SetMessageToError(in.api, fmt.Errorf("error updating url: %w", err))
-		in.api.Data.State = St_modify_url_select
 	} else {
 		in.api.Data.Bookmark.URL = input
 		in.handleModifyShow()
@@ -525,23 +502,22 @@ func (in *InputHandler) handleModifyCommentShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_modify_comment_select
+	in.api.Data.State = StateModifyCommentSelect
 }
 
 func (in *InputHandler) handleModifyCommentSelect(input string) {
-	if input == op_delete {
+	if input == opDelete {
 		input = ""
 	}
 
-	if input == op_back {
+	if input == opBack {
 		in.handleModifyShow()
 	} else if err := in.db.UpdateComment(in.api.Data.Bookmark.ID, input); err != nil {
 		SetMessageToError(in.api, fmt.Errorf("error updating comment: %w", err))
-		in.api.Data.State = St_modify_comment_select
 	} else {
 		in.api.Data.Bookmark.Comment = input
 		in.handleModifyShow()
@@ -557,21 +533,20 @@ func (in *InputHandler) handleModifyTagsShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
-		{Text: op_delete},
+		{Text: opBack},
+		{Text: opDelete},
 	}
 
-	in.api.Data.State = St_modify_tags_select
+	in.api.Data.State = StateModifyTagsSelect
 }
 
 func (in *InputHandler) handleModifyTagsSelect(input string) {
 	switch {
-	case input == op_back:
+	case input == opBack:
 		in.handleModifyShow()
-	case input == op_delete:
+	case input == opDelete:
 		if err := in.db.ClearTags(in.api.Data.Bookmark.ID); err != nil {
 			SetMessageToError(in.api, fmt.Errorf("error clearing tags: %w", err))
-			in.api.Data.State = St_modify_tags_select
 		} else {
 			in.api.Data.Bookmark.Tags = []string{}
 			in.handleModifyShow()
@@ -580,7 +555,6 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 		tags := getTagsFromInput(input[1:])
 		if err := in.db.AddTags(in.api.Data.Bookmark.ID, tags); err != nil {
 			SetMessageToError(in.api, fmt.Errorf("error adding tag: %w", err))
-			in.api.Data.State = St_modify_tags_select
 		} else {
 			for _, t := range tags {
 				if !slices.Contains(in.api.Data.Bookmark.Tags, t) {
@@ -598,7 +572,6 @@ func (in *InputHandler) handleModifyTagsSelect(input string) {
 		tags := getTagsFromInput(input[1:])
 		if err := in.db.RemoveTags(in.api.Data.Bookmark.ID, tags); err != nil {
 			SetMessageToError(in.api, fmt.Errorf("error removing tag: %w", err))
-			in.api.Data.State = St_modify_tags_select
 		} else {
 			tmp := make([]string, 0)
 			for _, t := range in.api.Data.Bookmark.Tags {
@@ -621,21 +594,20 @@ func (in *InputHandler) handleDeleteConfirmShow() {
 	in.api.Options[rofiapi.OptionUseHotKeys] = "false"
 
 	in.api.Entries = []rofiapi.Entry{
-		{Text: op_back},
+		{Text: opBack},
 	}
 
-	in.api.Data.State = St_delete_confirm_select
+	in.api.Data.State = StateDeleteConfirmSelect
 }
 
 func (in *InputHandler) handleDeleteConfirmSelect(input string) {
-	if input == op_back || input != "yes" {
+	if input == opBack || input != "yes" {
 		in.HandleBookmarksShow()
 		return
 	}
 
 	if err := in.db.Remove(in.api.Data.Bookmark.ID); err != nil {
 		SetMessageToError(in.api, fmt.Errorf("error deleting bookmark: %w", err))
-		in.api.Data.State = St_bookmarks_show
 	} else {
 		in.HandleBookmarksShow()
 	}
@@ -653,12 +625,13 @@ func (in *InputHandler) getSelectedFromInput(input string) (bukudb.Bookmark, err
 // SetMessageToError sets rofi's message box to the text of an error and
 // replaces rofi's entries with the back option
 func SetMessageToError(api *rofiapi.RofiApi[Data], err error) {
-	log.Println(err)
+	log.Println("ERROR", err)
 	api.Options[rofiapi.OptionMessage] = fmt.Sprintf(
 		"<markup><span font_weight=\"bold\">error:</span><span> %s</span></markup>",
 		rofiapi.EscapePangoMarkup(err.Error()))
 	api.Options[rofiapi.OptionNoCustom] = "true"
-	api.Entries = []rofiapi.Entry{{Text: op_back}}
+	api.Entries = []rofiapi.Entry{{Text: opExit}}
+	api.Data.State = StateErrorShow
 }
 
 func getIdFromBookmarkString(input string) (uint16, error) {
